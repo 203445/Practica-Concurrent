@@ -1,0 +1,3 @@
+# Practica-Concurrent
+
+Programación concurrente.
