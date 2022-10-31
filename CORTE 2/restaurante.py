@@ -1,5 +1,5 @@
 # Karla Maricruz Ruiz Diaz
-Janeth Alejandra Morales Menso
+# Janeth Alejandra Morales Mendoza
 
 from threading import Thread 
 import queue, time
