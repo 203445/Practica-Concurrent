@@ -1,3 +1,6 @@
+# Karla Maricruz Ruiz Diaz
+# Janeth Alejandra Morales Mendoza
+
 from threading import Thread 
 import queue, time
 import threading 
@@ -5,11 +8,7 @@ import random
 
 #clientes llegando 
 bufferRest = queue.Queue(maxsize=20)
-#print(cantrecep.maxsize)
 
-#cantidad de meseros
-
-#print(pormeseros)
 #caoacidad del rest
 rest = queue.Queue(maxsize=20)
 restaurante = queue.Queue(maxsize=20)
