@@ -51,7 +51,6 @@ class Persona(threading.Thread):
         with self.monitor:
             if restaurante.full():
                 print("Cliente esperando: "+str(self.id+1))
-                # time.sleep(5)
                 self.monitor.notify()
                 bufferCook.put(self.id)
                 self.monitor.wait()
