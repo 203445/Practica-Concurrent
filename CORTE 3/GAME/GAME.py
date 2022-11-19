@@ -1,0 +1,272 @@
+import pygame, random ,threading
+WIDTH = 800
+HEIGHT = 600
+BLACK = (0, 0, 0)
+WHITE = ( 255, 255, 255)
+score = 0
+GREEN = (0,255,0)
+BLUE = (0, 0 ,255)
+
+
+def scores(surface, text, size, x , y ):
+	font = pygame.font.Font("/assets/scoree.ttf", size)
+	text_surface = font.render(text, True, WHITE)
+	text_rect = text_surface.get_rect()
+	text_rect.midtop = (x, y)
+	surface.blit(text_surface, text_rect)
+
+
+
+def texto(surface, text, size, x, y):
+	font = pygame.font.SysFont("serif", size)
+	text_surface = font.render(text, True, (255, 255, 255))
+	text_rect = text_surface.get_rect()
+	text_rect.midtop = (x, y)
+	surface.blit(text_surface, text_rect)	
+
+def pantalla_perder():
+	fondo2 = pygame.image.load("assets/init.png").convert()
+	ancho_deseado = 800
+	alto_deseado = 600
+	fondoxd = pygame.transform.scale(fondo2, (ancho_deseado, alto_deseado))
+	screen.blit(fondoxd, [0, 0])
+
+	texto(screen, "Space XS", 65, WIDTH // 2, HEIGHT // 4)
+	texto(screen, "Presiona cualquier tecla", 20, WIDTH //2, HEIGHT * 3/4)
+	pygame.display.flip()	
+
+	waiting = True
+	while waiting:
+		clock.tick(60)
+		for event in pygame.event.get():
+			if event.type == pygame.QUIT:
+				pygame.mixer.music.load('assets/gameover.wav')
+				pygame.mixer.music.set_volume(0.75)
+				pygame.mixer.music.play(-1, 0.0)
+				pygame.quit()
+				
+			if event.type == pygame.KEYUP:
+				waiting = False			
+	
+class Player(pygame.sprite.Sprite, threading.Thread):
+	def __init__(self):
+		super().__init__()
+		threading.Thread.__init__(self)
+		self.image = pygame.image.load("assets/novita.png").convert()
+		self.image.set_colorkey(BLACK)
+		self.rect = self.image.get_rect()
+		self.radius = 27
+		# pygame.draw.circle(self.image, GREEN,self.rect.center,self.radius )
+		self.rect.center = (200,200)
+		self.rect.centerx = WIDTH // 2
+		self.rect.bottom = HEIGHT - 10
+		self.speed_x = 0
+
+	def update(self):
+		pos_mouse = pygame.mouse.get_pos()
+		player.rect.x = pos_mouse[0]
+		player.rect.y = 500
+		
+
+	def dispara(self):
+		laser =  Laser(self.rect.centerx, self.rect.top)
+		all_sprites.add(laser)
+		laser_list.add(laser)
+
+
+class Asteroide(pygame.sprite.Sprite):
+	def __init__(self):
+		super().__init__()
+		self.image = pygame.image.load("assets/asteroide3.png").convert()
+		self.image.set_colorkey(BLACK)
+		self.rect = self.image.get_rect()
+		self.radius = 14
+		# pygame.draw.circle(self.image, BLUE ,self.rect.center,self.radius)
+		self.rect.center = (200,200)
+		self.rect.x = random.randrange(WIDTH - self.rect.width) 
+		self.rect.y = random.randrange(-100, -40)
+		self.speedy = random.randrange(1, 10)
+		self.speedx = random.randrange(-3, 3)
+	
+	def update(self):
+		self.rect.x += self.speedx
+		self.rect.y += self.speedy
+		if self.rect.top > HEIGHT + 10 or self.rect.left < -25 or self.rect.right > WIDTH + 20:
+			self.rect.x = random.randrange(WIDTH - self.rect.width)
+			self.rect.y = random.randrange(-100, -40)
+			self.speedy = random.randrange(1, 8)
+
+class Laser(pygame.sprite.Sprite):
+	def __init__(self,x,y):
+		super().__init__()
+		self.image = pygame.image.load("assets/laser4.png").convert()
+		self.image.set_colorkey(BLACK)
+		self.rect = self.image.get_rect()
+		self.rect.centerx = x
+		self.rect.y = y
+		self.speedy = -10
+
+
+	def update(self):
+		self.rect.y += self.speedy
+		if self.rect.bottom < 0:
+			self.kill()
+
+
+class Enemigos(pygame.sprite.Sprite):
+	def __init__(self):
+		super().__init__()
+		self.image = pygame.image.load("assets/ovni1.png").convert()
+		self.image.set_colorkey(BLACK)
+		self.rect = self.image.get_rect()
+		self.radius = 37
+		# pygame.draw.circle(self.image, BLUE ,self.rect.center,self.radius)
+		self.rect.center = (150,150)
+		self.rect.y = random.randrange(HEIGHT - self.rect.height)
+		self.rect.x = random.randrange(WIDTH - self.rect.width)
+		self.speedy = random.randrange(1, 2)
+		self.speedx = random.randrange(1, 2)
+		self.hp = 30
+		
+	def update(self): 
+		self.rect.x += self.speedx
+		self.rect.y += self.speedy
+
+		# Limita el margen izquierdo
+		if self.rect.left < 0:
+			self.speedx  += 1
+
+		# Limita el margen derecho
+		if self.rect.right > WIDTH:
+			self.speedx  -= 1
+
+		# Limita el margen inferior
+		if self.rect.bottom > HEIGHT:
+			self.speedy  -= 1
+
+		# Limita el margen superior
+		if self.rect.top < 0:
+			self.speedy  += 1
+
+# INICIO
+pygame.init()
+pygame.mixer.init()
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Space XS")
+clock = pygame.time.Clock() 	 	
+
+# Music
+pygame.mixer.music.load('assets/fondo.wav')
+pygame.mixer.music.set_volume(0.75)
+pygame.mixer.music.play(-1, 0.0)	
+
+
+
+# asteroides_list = pygame.sprite.Group()
+all_sprites = pygame.sprite.Group()
+# laser_list = pygame.sprite.Group()
+# enemige_list = pygame.sprite.Group()
+
+background = pygame.image.load("assets/uni.jpg").convert()
+
+# all_sprites.add(enemige)
+# enemige_list.add(enemige)	
+
+# if score == 0:
+# 	for i in range(3):	
+# enemigo1 = Enemigos()
+# enemige_list = pygame.sprite.Group()
+# all_sprites.add(enemigo1)
+# enemige_list.add(enemigo1)	
+# Game start
+perder = True
+nova = True
+while nova:
+
+	if perder:
+		pantalla_perder()
+		perder = False
+		asteroides_list = pygame.sprite.Group()
+		all_sprites = pygame.sprite.Group()
+		laser_list = pygame.sprite.Group()
+		enemige_list = pygame.sprite.Group()
+		player = Player()
+		all_sprites.add(player)
+
+		for i in range(4):
+			astero = Asteroide()
+			all_sprites.add(astero)
+			asteroides_list.add(astero)
+		score = 0 
+
+		enemigo1 = Enemigos()
+		all_sprites.add(enemigo1)
+		enemige_list.add(enemigo1)	
+ 
+	# Actualiza
+	all_sprites.update()
+	asteroides_list.update()
+	enemige_list.update()
+
+	# Velocidad de FDS
+	clock.tick(60)
+	# Eventos
+	for event in pygame.event.get():
+		# Verifica el cierre de ventana
+		print(event)
+		if event.type == pygame.QUIT:
+			running = False
+	
+		elif event.type == pygame.MOUSEBUTTONDOWN:
+			player.dispara()
+
+			
+	
+
+	# COLOSIONES LASER
+	disparoAsteroides = pygame.sprite.groupcollide(asteroides_list, laser_list, True, True)
+	
+	# disparoEnemigos = 
+	if disparoAsteroides:	
+		for d in disparoAsteroides:
+			score += 2
+			astero = Asteroide()
+			all_sprites.add(astero)
+			asteroides_list.add(astero)
+
+	# COLOSIONES ENEMIGOS
+	# disparoEnemigos = pygame.sprite.groupcollide(enemige_list, laser_list, False, True)
+	# if score == 10:
+	# 	if disparoEnemigos:
+	# 		for x in range(2):
+	# 			enemigo1 = Enemigos()
+	# 			all_sprites.add(enemigo1)
+	# 			enemige_list.add(enemigo1)
+	# 			enemigo1.hp -= 10
+	# 			score += 10
+	# 		if enemigo1.hp <= 0 :
+	# 			enemigo1.kill()	
+
+	disparo =  pygame.sprite.spritecollide(player, asteroides_list,True, pygame.sprite.collide_circle)
+	disparo2 =  pygame.sprite.spritecollide(player, enemige_list, True,pygame.sprite.collide_circle)
+	
+	if disparo :
+		nova = False
+	elif disparo2:
+		nova = False
+	# Color de Fondo
+	screen.fill(BLACK)
+	screen.blit(background, [0, 0])
+	all_sprites.draw(screen)
+	enemige_list.draw(screen)
+	# Puntos
+	scores(screen, str(score), 25, WIDTH // 2, 20 )
+	pygame.display.flip()
+
+pygame.quit()
+
+# if __name__ == '__main__':
+# 	player = Player()
+# 	# player.start()
+# 	all_sprites.add(player)
+	
