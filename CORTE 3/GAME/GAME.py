@@ -3,22 +3,34 @@ WIDTH = 800
 HEIGHT = 600
 BLACK = (0, 0, 0)
 WHITE = ( 255, 255, 255)
-score = 0
 GREEN = (0,255,0)
 BLUE = (0, 0 ,255)
 
 
 def scores(surface, text, size, x , y ):
-	font = pygame.font.Font("/assets/scoree.ttf", size)
+	font = pygame.font.Font("assets/scoree.ttf", size)
 	text_surface = font.render(text, True, WHITE)
 	text_rect = text_surface.get_rect()
 	text_rect.midtop = (x, y)
 	surface.blit(text_surface, text_rect)
 
+def barra_hp(surface, x , y , hp):
+	largo = 120
+	ancho = 25
+	cal_barr = int((player.hp / 100) * largo)
+	borde = pygame.Rect(x,y, largo, ancho)
+	recta = pygame.Rect(x,y, cal_barr, ancho)
+	pygame.draw.rect(surface, BLACK, borde,3)
+	pygame.draw.rect(surface, "#DC143C" ,recta)
+	live = pygame.image.load("assets/live.png").convert()
+	live.set_colorkey(BLACK)
+	surface.blit(pygame.transform.scale(live,(25,25)),(620,15))
+	if player.hp < 0:
+		player.hp = 0
 
 
 def texto(surface, text, size, x, y):
-	font = pygame.font.SysFont("serif", size)
+	font = pygame.font.Font("assets/scoree.ttf", size)
 	text_surface = font.render(text, True, (255, 255, 255))
 	text_rect = text_surface.get_rect()
 	text_rect.midtop = (x, y)
@@ -61,6 +73,7 @@ class Player(pygame.sprite.Sprite, threading.Thread):
 		self.rect.centerx = WIDTH // 2
 		self.rect.bottom = HEIGHT - 10
 		self.speed_x = 0
+		self.hp = 100
 
 	def update(self):
 		pos_mouse = pygame.mouse.get_pos()
@@ -151,6 +164,7 @@ class Enemigos(pygame.sprite.Sprite):
 # INICIO
 pygame.init()
 pygame.mixer.init()
+score = 0
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Space XS")
 clock = pygame.time.Clock() 	 	
@@ -160,36 +174,21 @@ pygame.mixer.music.load('assets/fondo.wav')
 pygame.mixer.music.set_volume(0.75)
 pygame.mixer.music.play(-1, 0.0)	
 
-
-
-# asteroides_list = pygame.sprite.Group()
+asteroides_list = pygame.sprite.Group()
 all_sprites = pygame.sprite.Group()
-# laser_list = pygame.sprite.Group()
-# enemige_list = pygame.sprite.Group()
+laser_list = pygame.sprite.Group()
+enemige_list = pygame.sprite.Group()
 
 background = pygame.image.load("assets/uni.jpg").convert()
 
-# all_sprites.add(enemige)
-# enemige_list.add(enemige)	
-
-# if score == 0:
-# 	for i in range(3):	
-# enemigo1 = Enemigos()
-# enemige_list = pygame.sprite.Group()
-# all_sprites.add(enemigo1)
-# enemige_list.add(enemigo1)	
 # Game start
 perder = True
 nova = True
 while nova:
-
+	
 	if perder:
 		pantalla_perder()
 		perder = False
-		asteroides_list = pygame.sprite.Group()
-		all_sprites = pygame.sprite.Group()
-		laser_list = pygame.sprite.Group()
-		enemige_list = pygame.sprite.Group()
 		player = Player()
 		all_sprites.add(player)
 
@@ -198,15 +197,17 @@ while nova:
 			all_sprites.add(astero)
 			asteroides_list.add(astero)
 		score = 0 
-
+		
+	if not enemige_list:
 		enemigo1 = Enemigos()
-		all_sprites.add(enemigo1)
 		enemige_list.add(enemigo1)	
- 
+		all_sprites.add(enemigo1)		
+	
 	# Actualiza
 	all_sprites.update()
 	asteroides_list.update()
 	enemige_list.update()
+	laser_list.update()
 
 	# Velocidad de FDS
 	clock.tick(60)
@@ -218,49 +219,72 @@ while nova:
 			running = False
 	
 		elif event.type == pygame.MOUSEBUTTONDOWN:
-			player.dispara()
-
-			
-	
+			player.dispara()	
 
 	# COLOSIONES LASER
 	disparoAsteroides = pygame.sprite.groupcollide(asteroides_list, laser_list, True, True)
-	
-	# disparoEnemigos = 
-	if disparoAsteroides:	
-		for d in disparoAsteroides:
-			score += 2
-			astero = Asteroide()
-			all_sprites.add(astero)
-			asteroides_list.add(astero)
-
 	# COLOSIONES ENEMIGOS
-	# disparoEnemigos = pygame.sprite.groupcollide(enemige_list, laser_list, False, True)
-	# if score == 10:
-	# 	if disparoEnemigos:
-	# 		for x in range(2):
-	# 			enemigo1 = Enemigos()
-	# 			all_sprites.add(enemigo1)
-	# 			enemige_list.add(enemigo1)
-	# 			enemigo1.hp -= 10
-	# 			score += 10
-	# 		if enemigo1.hp <= 0 :
-	# 			enemigo1.kill()	
+	disparoEnemigos = pygame.sprite.groupcollide(enemige_list, laser_list, False, True)
 
+	#COLOSIONES Asteroides
 	disparo =  pygame.sprite.spritecollide(player, asteroides_list,True, pygame.sprite.collide_circle)
+	# COLOSIONES ENEMIGOS
 	disparo2 =  pygame.sprite.spritecollide(player, enemige_list, True,pygame.sprite.collide_circle)
 	
 	if disparo :
 		nova = False
-	elif disparo2:
+	if disparo2:
+		# nova = False
+		player.hp -=20
+
+	
+		# if score >=0:
+		# 	score -=10
+		# 	if score < 0 :
+		# 		score = 0
+		# nova = False
+	
+	if disparoAsteroides:	
+		for d in disparoAsteroides:
+			score += 5
+			astero = Asteroide()
+			all_sprites.add(astero)
+			asteroides_list.add(astero)
+
+	
+	# if score == 10:
+	if disparoEnemigos:
+		score += 10
+		# enemigo1 = Enemigos()
+		# all_sprites.add(enemigo1)
+		# enemige_list.add(enemigo1)
+		enemigo1.hp -= 10
+
+	if enemigo1.hp <= 0:
+		enemigo1.kill()	
+		# enemigo2 = Enemigos()
+		# all_sprites.add(enemigo2)
+		# enemige_list.add(enemigo2)
+		# enemigo2.hp -= 10
+	
+	if player.hp <=0 :
 		nova = False
+		
+	
+
+
 	# Color de Fondo
 	screen.fill(BLACK)
 	screen.blit(background, [0, 0])
 	all_sprites.draw(screen)
 	enemige_list.draw(screen)
-	# Puntos
-	scores(screen, str(score), 25, WIDTH // 2, 20 )
+	asteroides_list.draw(screen)
+	laser_list.draw(screen)
+
+
+	# Dibujos en la pantalla
+	scores(screen, str(score).zfill(2), 25, WIDTH // 2, 20 )
+	barra_hp(screen, 650,15, player.hp)
 	pygame.display.flip()
 
 pygame.quit()
