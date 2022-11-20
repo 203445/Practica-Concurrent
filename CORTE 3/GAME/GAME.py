@@ -25,8 +25,7 @@ def barra_hp(surface, x , y , hp):
 	live = pygame.image.load("assets/live.png").convert()
 	live.set_colorkey(BLACK)
 	surface.blit(pygame.transform.scale(live,(25,25)),(620,15))
-	if player.hp < 0:
-		player.hp = 0
+	
 
 
 def texto(surface, text, size, x, y):
@@ -74,7 +73,9 @@ class Player(pygame.sprite.Sprite, threading.Thread):
 		self.rect.bottom = HEIGHT - 10
 		self.speed_x = 0
 		self.hp = 100
-
+		self.killed = False
+		self.vida = 3
+		
 	def update(self):
 		pos_mouse = pygame.mouse.get_pos()
 		player.rect.x = pos_mouse[0]
@@ -86,6 +87,8 @@ class Player(pygame.sprite.Sprite, threading.Thread):
 		all_sprites.add(laser)
 		laser_list.add(laser)
 
+	# def terminar(self):
+    # 	self.killed = True
 
 class Asteroide(pygame.sprite.Sprite):
 	def __init__(self):
@@ -176,6 +179,10 @@ pygame.mixer.music.play(-1, 0.0)
 
 asteroides_list = pygame.sprite.Group()
 all_sprites = pygame.sprite.Group()
+all_sprites2 = pygame.sprite.Group()
+all_sprites4 = pygame.sprite.Group()
+all_sprites3 = pygame.sprite.Group()
+
 laser_list = pygame.sprite.Group()
 enemige_list = pygame.sprite.Group()
 
@@ -189,32 +196,50 @@ while nova:
 	if perder:
 		pantalla_perder()
 		perder = False
+		# for x in range(3):
 		player = Player()
-		all_sprites.add(player)
+		# player2 = Player()
+		# player3 = Player() crwando los otros hilos
+		# player4 = Player()
+		
+		# player.start()
+		# player2.start() iniciando los otros hilos
+		# player3.start()
+		# player4.start()
 
-		for i in range(4):
-			astero = Asteroide()
-			all_sprites.add(astero)
-			asteroides_list.add(astero)
+		all_sprites.add(player) 
+		# all_sprites2.add(player2)
+		# all_sprites3.add(player3)
+		# all_sprites4.add(player4)
+
 		score = 0 
 		
-	if not enemige_list:
+	if not enemige_list or not asteroides_list:
+		
 		enemigo1 = Enemigos()
 		enemige_list.add(enemigo1)	
-		all_sprites.add(enemigo1)		
+		all_sprites.add(enemigo1)	
+
+		# for i in range(2):
+		astero = Asteroide()
+		all_sprites.add(astero)
+		asteroides_list.add(astero)
 	
 	# Actualiza
 	all_sprites.update()
 	asteroides_list.update()
 	enemige_list.update()
 	laser_list.update()
+	# all_sprites2.update()  parte de la aplicación para el hilo
+	# all_sprites3.update()
+	# all_sprites4.update()
 
 	# Velocidad de FDS
 	clock.tick(60)
 	# Eventos
 	for event in pygame.event.get():
 		# Verifica el cierre de ventana
-		print(event)
+		# print(event)
 		if event.type == pygame.QUIT:
 			running = False
 	
@@ -232,7 +257,8 @@ while nova:
 	disparo2 =  pygame.sprite.spritecollide(player, enemige_list, True,pygame.sprite.collide_circle)
 	
 	if disparo :
-		nova = False
+		# nova = False
+		player.hp -=10
 	if disparo2:
 		# nova = False
 		player.hp -=20
@@ -267,17 +293,54 @@ while nova:
 		# enemige_list.add(enemigo2)
 		# enemigo2.hp -= 10
 	
-	if player.hp <=0 :
-		nova = False
-		
+	if score == 500 :
+		print("nivel 2")
 	
+	
+	# if player.hp <=0:
+	# 	nova = False
+	
+	# if player.hp < 0 and player.vida == 3:
+	# 	player.hp = 0 
 
+	if player.hp < 0 and player.vida == 3:
+		player.kill()
+		player = Player()
+		# # player2.start()
+		# all_sprites2.add(player2)
+		all_sprites.add(player)
+		player.vida = 2
 
+	if player.vida == 2:
+		if player.hp < 0:
+			player.kill()
+			player = Player()
+			# # player3.start()
+			# all_sprites3.add(player3)
+			all_sprites.add(player)
+			player.vida = 1
+
+	if player.vida == 1:
+		if player.hp < 0:
+			player.kill()
+			player= Player()
+			# all_sprites4.add(player4)
+			all_sprites.add(player)
+			player.vida = 0
+
+	if player.vida == 0:
+		if player.hp < 0:
+			player.kill()
+			player.hp = 0
+			break
 	# Color de Fondo
 	screen.fill(BLACK)
 	screen.blit(background, [0, 0])
 	all_sprites.draw(screen)
-	enemige_list.draw(screen)
+	# all_sprites2.draw(screen)    inconclusooo
+	# all_sprites3.draw(screen)
+	# all_sprites4.draw(screen)
+	# enemige_list.draw(screen)
 	asteroides_list.draw(screen)
 	laser_list.draw(screen)
 
