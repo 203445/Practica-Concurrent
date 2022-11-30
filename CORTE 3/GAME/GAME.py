@@ -390,7 +390,7 @@ def main():
 			score += 50
 			jefesito.hp -= 50
 
-		if score > 50 :
+		if score > 100 :
 			# all_sprites.add(jefesito)
 			jefe_list.add(jefesito)
 
